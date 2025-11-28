@@ -1,0 +1,112 @@
+# .gitignore - microservices monorepo
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+dist/
+build/
+coverage/
+
+# Java / JVM
+target/
+*.class
+*.jar
+*.war
+*.ear
+*.iml
+.mvn/
+.gradle/
+build/
+logs/
+
+# Spring Boot devtools
+spring-devtools.properties
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+venv/
+env/
+ENV/
+.env
+.env.*
+
+# Go
+bin/
+pkg/
+*.exe
+*.out
+*.test
+vendor/
+
+# Docker
+docker-compose.override.yml
+docker-compose.*.yml
+docker-compose.*.env
+**/Dockerfile.*.local
+*.dockerignore
+
+# Kubernetes / Helm
+*.kubeconfig
+.kube/
+helm/cache/
+helm/tmp/
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+override.tf
+override.tf.json
+*.tfvars
+*.tfvars.json
+terraform.tfvars
+
+# CI/CD & Test Reports
+coverage/
+test-results/
+reports/
+*.lcov
+
+# IDEs / Editors
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.code-workspace
+*.iml
+*.swp
+*~
+project.lock.json
+
+# Operating System
+.DS_Store
+Thumbs.db
+
+# Logs / temp / runtime files
+logs/
+*.log
+tmp/
+temp/
+.cache/
+*.pid
+
+# Certificates / secrets
+*.pem
+*.key
+*.crt
+*.p12
+credentials.json
+secrets/
+*.env.local
+
+# Misc
+!.gitkeep

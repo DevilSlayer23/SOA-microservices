@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fastapi-deployment
+  labels:
+    app: fastapi
+spec:
+  # The number of replicated Pods to run. You can scale this later.
+  replicas: 3
+  selector:
+    matchLabels:
+      app: fastapi
+  template:
+    metadata:
+      labels:
+        app: fastapi
+    spec:
+      containers:
+      - name: fastapi-container
+        # Use the image you built locally with Docker (e.g., your-username/fastapi-image:latest)
+        image: fastapi-image:latest 
+        imagePullPolicy: Never # Use 'Never' for local images like Minikube/Kind
+        ports:
+        - containerPort: 8000
+        # Recommended: Define resource requests and limits 
+        resources:
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+          requests:
+            cpu: "250m"
+            memory: "256Mi"
+        
+        # Pull configuration from the Secret and ConfigMap (to be created next)
+        envFrom:
+        - configMapRef:
+            name: app-config
+        - secretRef:
+            name: db-credentials
