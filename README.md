@@ -1,21 +1,21 @@
-Ecommerce Microservices Project
+##Ecommerce Microservices Project
 
 This project uses a polyglot microservice setup:
 
-FastAPI → Users + Products
+- FastAPI → Users + Products
 
-Express.js → Cart + Orders
+- Express.js → Cart + Orders
 
-Postgres → FastAPI database
+- Postgres → FastAPI database
 
-MongoDB → Express database
+- MongoDB → Express database
 
-Docker Compose → Orchestration
+- Docker Compose → Orchestration
 
 Everything runs in containers.
 Each service has its own environment file and Dockerfile.
 
-1. Requirements
+## 1. Requirements
 
 Install these first:
 
@@ -27,7 +27,8 @@ Docker Compose
 
 (Optional) Python 3.11+ for local FastAPI development
 
-2. Project Structure
+## 2. Project Structure
+```
 project/
   docker-compose.yml
   dockerfiles/
@@ -43,8 +44,9 @@ project/
     .env
     requirements.txt
     .dockerignore
+```
 
-3. Environment Variables
+## 3. Environment Variables
 FastAPI .env
 DATABASE_URL=postgresql://postgres:postgres@postgres:5432/ecommerce_db
 JWT_SECRET=your_secret
@@ -56,7 +58,7 @@ JWT_SECRET=your_secret
 
 Make sure these files exist before running Docker.
 
-4. Start the Entire Stack
+## 4. Start the Entire Stack
 
 Run from project root:
 
@@ -80,23 +82,23 @@ View logs
 docker compose logs fast_api
 docker compose logs express_api
 
-5. API Endpoints
-FastAPI (Users + Products)
+## 5. API Endpoints
+# FastAPI (Users + Products)
 
 Base:
 
 http://localhost:8000
 
 
-Endpoints:
+## Endpoints:
 
-GET /health
-POST /users/register
-POST /users/login
-GET /products
-POST /products
+- GET /health
+- POST /users/register
+- POST /users/login
+- GET /products
+- POST /products
 
-Express API (Cart + Orders)
+# Express API (Cart + Orders)
 
 Base:
 
@@ -110,7 +112,7 @@ GET /cart/:userId
 POST /cart/add
 POST /orders/checkout
 
-6. Service-to-Service Communication
+## 6. Service-to-Service Communication
 
 Inside Docker, services use service names, not localhost.
 
@@ -123,7 +125,7 @@ http://express_api:3000/cart/123
 
 If you use localhost inside containers, the request will fail.
 
-7. Reset Databases
+## 7. Reset Databases
 
 If Postgres/Mongo get corrupted:
 
@@ -133,24 +135,25 @@ docker compose up --build
 
 -v removes volumes → wipes all database data.
 
-**8. Running Locally
+## 8. Running Locally
 
-(Optional – without Docker)**
-
+(Optional – without Docker)
+```
 FastAPI
 cd fast_api
 pip install -r requirements.txt
 uvicorn app.main:app --reload
-
+```
+```
 Express
 cd express_api
 npm install
 npm run dev
-
+```
 
 Update env URLs to localhost when running locally.
 
-9. Troubleshooting
+## 9. Troubleshooting
 FastAPI can't connect to Postgres
 
 Your DATABASE_URL is wrong.
@@ -170,5 +173,5 @@ Service crashed. Check logs:
 
 docker compose logs <service>
 
-10. Stop All Containers
+## 10. Stop All Containers
 docker compose down
