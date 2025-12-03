@@ -1,0 +1,152 @@
+// cart 
+# -----------------------------------------
+# Base image
+# -----------------------------------------
+FROM node:20-alpine AS base
+
+WORKDIR /app
+
+# Create user (non-root for security)
+RUN addgroup -S app && adduser -S app -G app
+
+# -----------------------------------------
+# Install deps first (cache layer)
+# -----------------------------------------
+COPY services/cart/package*.json ./
+RUN npm install
+
+# -----------------------------------------
+# Copy application
+# -----------------------------------------
+COPY services/cart ./
+
+# Install curl for healthcheck
+RUN apk add --no-cache curl
+
+# Switch to non-root user
+USER app
+
+# -----------------------------------------
+# Expose + start server
+# -----------------------------------------
+EXPOSE 8003
+
+CMD ["npm", "start"]
+
+//orders
+# -----------------------------------------
+# Base image
+# -----------------------------------------
+FROM node:20-alpine AS base
+
+WORKDIR /app
+
+# Create user (non-root for security)
+RUN addgroup -S app && adduser -S app -G app
+
+# -----------------------------------------
+# Install deps first (cache layer)
+# -----------------------------------------
+COPY services/orders/package*.json ./
+RUN npm install
+
+# -----------------------------------------
+# Copy application
+# -----------------------------------------
+COPY services/orders ./
+
+# Install curl for healthcheck
+RUN apk add --no-cache curl
+
+
+# Switch to non-root user
+USER app
+
+# -----------------------------------------
+# Expose + start server
+# -----------------------------------------
+EXPOSE 8004
+
+CMD ["npm", "start"]
+
+//products
+# -----------------------------------------
+# Base image
+# -----------------------------------------
+FROM python:3.11-slim AS base
+
+# Install system deps (Postgres client + build tools)
+RUN apt-get update && apt-get install -y curl --no-install-recommends \
+        build-essential \
+        libpq-dev \
+        && rm -rf /var/lib/apt/lists/*
+
+# Create non-root user
+RUN useradd --create-home appuser
+WORKDIR /app
+
+
+# -----------------------------------------
+# Install Python packages
+# -----------------------------------------
+COPY services/products/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# -----------------------------------------
+# Copy application
+# -----------------------------------------
+COPY services/products/app ./app
+
+# Copy only the env file explicitly
+# COPY .env .env
+
+# Switch to non-root user
+USER appuser
+
+# -----------------------------------------
+# Expose and run server
+# -----------------------------------------
+EXPOSE 8002
+
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8002"]
+
+//users
+# -----------------------------------------
+# Base image
+# -----------------------------------------
+FROM python:3.11-slim AS base
+
+# Install system deps (Postgres client + build tools)
+RUN apt-get update && apt-get install -y curl --no-install-recommends \
+        build-essential \
+        libpq-dev \
+        && rm -rf /var/lib/apt/lists/*
+
+# Create non-root user
+RUN useradd --create-home appuser
+WORKDIR /app
+
+# -----------------------------------------
+# Install Python packages
+# -----------------------------------------
+COPY services/users/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# -----------------------------------------
+# Copy application
+# -----------------------------------------
+COPY services/users/app ./app
+
+# Copy only the env file explicitly
+# COPY .env .env
+
+# Switch to non-root user
+USER appuser
+
+# -----------------------------------------
+# Expose and run server
+# -----------------------------------------
+EXPOSE 8001
+
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8001"]
+

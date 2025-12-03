@@ -6,10 +6,10 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-PassW0rd}
       POSTGRES_DB: ${POSTGRES_DB:-ecommerce_db}
     env_file:
-      - ./services/users/.env.prod
+        -  /home/antisocial/Desktop/projects/microservices/services/users/.env.prod
     volumes:
       - pgdata:/var/lib/postgresql/data
-      - ./infra/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./infra/db/init.sql:/docker-entrypoint-initdb.d/init.sql #
     networks:
       - backend
     healthcheck:
@@ -17,7 +17,6 @@ services:
       interval: 10s
       retries: 5
       timeout: 5s
-      start_period: 10s
     
 
   mongo:
@@ -31,17 +30,18 @@ services:
       interval: 10s
       retries: 5
       timeout: 5s
-      start_period: 10s
 
   ecom_users:
     build: 
-      context: .
+      context: .  # <-- FIX: Set context to the Project Root
       dockerfile: infra/dockerfiles/Dockerfile.users
     environment:
-      - DATABASE_URL=${DATABASE_URL:-postgresql+asyncpg://admin:PassW0rd@postgres:5432/ecommerce_users}
+      # FIX: Change 'localhost' to the service name 'postgres'
+      - DATABASE_URL=${DATABASE_URL:-postgresql+asyncpg://admin:P%40ssW0rd@postgres:5432/ecommerce_users}
+      # You can also use a generic host variable
       - DB_HOST=postgres
     env_file:
-      - ./services/users/.env.prod
+      - /home/antisocial/Desktop/projects/microservices/services/users/.env.prod
     depends_on:
       postgres:
         condition: service_healthy
@@ -54,17 +54,18 @@ services:
       interval: 10s
       retries: 5
       timeout: 5s
-      start_period: 30s
   
   ecom_products:
     build: 
-      context: .
+      context: .  # <-- FIX: Set context to the Project Root
       dockerfile: infra/dockerfiles/Dockerfile.products
     environment:
-      - DATABASE_URL=${DATABASE_URL:-postgresql+asyncpg://admin:PassW0rd@postgres:5432/ecommerce_products}
+      # FIX: Change 'localhost' to the service name 'postgres'
+      - DATABASE_URL=${DATABASE_URL:-postgresql+asyncpg://admin:P%40ssW0rd@postgres:5432/ecommerce_products}
+      # You can also use a generic host variable
       - DB_HOST=postgres
     env_file:
-      - ./services/products/.env.prod
+      - /home/antisocial/Desktop/projects/microservices/services/products/.env.prod
     depends_on:
       postgres:
         condition: service_healthy
@@ -77,19 +78,19 @@ services:
       interval: 10s
       retries: 5
       timeout: 5s
-      start_period: 30s
+
+
 
   ecom_cart:
     build: 
-      context: .
+      context: .  # <-- FIX: Set context to the Project Root
       dockerfile: infra/dockerfiles/Dockerfile.cart
     env_file:
-      - ./services/cart/.env.prod
+      - /home/antisocial/Desktop/projects/microservices/services/cart/.env.prod
     environment:
       - MONGO_URI=${MONGO_DB_URI:-mongodb://mongo:27017/ecommerce_cart}
-      - USERS_SERVICE_URL=http://ecom_users:8001
-      - PRODUCTS_SERVICE_URL=http://ecom_products:8002
     depends_on:
+      # FIX 2: Use the 'service_healthy' condition for both dependencies
       mongo:
         condition: service_healthy
       ecom_users:
@@ -106,28 +107,25 @@ services:
       interval: 10s
       retries: 10
       timeout: 5s
-      start_period: 40s
 
+      
   ecom_orders:
     build: 
-      context: .
+      context: .  # <-- FIX: Set context to the Project Root
       dockerfile: infra/dockerfiles/Dockerfile.orders
     env_file:
-      - ./services/orders/.env.prod
+      - /home/antisocial/Desktop/projects/microservices/services/orders/.env.prod
     environment:
       - MONGO_URI=${MONGO_DB_URI:-mongodb://mongo:27017/ecommerce_orders}
-      - USERS_SERVICE_URL=http://ecom_users:8001
-      - PRODUCTS_SERVICE_URL=http://ecom_products:8002
-      - CART_SERVICE_URL=http://ecom_cart:8003
     depends_on:
+      # FIX 2: Use the 'service_healthy' condition for both dependencies
       mongo:
         condition: service_healthy
       ecom_users:
         condition: service_healthy
       ecom_products:
         condition: service_healthy
-      ecom_cart:
-        condition: service_healthy
+
     ports:
       - "8004:8004"
     networks:
@@ -138,7 +136,6 @@ services:
       interval: 10s
       retries: 10
       timeout: 5s
-      start_period: 40s
 
 volumes:
   pgdata:
@@ -146,4 +143,3 @@ volumes:
 
 networks:
   backend:
-    driver: bridge

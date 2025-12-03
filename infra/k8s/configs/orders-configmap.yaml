@@ -1,0 +1,12 @@
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: orders-config
+  namespace: ecommerce
+data:
+  MONGO_URI: "mongodb://mongo:27017/ecommerce_orders"
+  USERS_SERVICE_URL: "http://users:8001"
+  PRODUCTS_SERVICE_URL: "http://products:8002"
+  CART_SERVICE_URL: "http://cart:8003"
+  PORT: "8004"
