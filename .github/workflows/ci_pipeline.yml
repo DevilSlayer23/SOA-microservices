@@ -1,0 +1,188 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test-users-service:
+    name: Test Users Service
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      working-directory: ./services/users
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-test.txt
+    
+    - name: Run unit tests
+      working-directory: ./services/users
+      run: |
+        pytest tests/unit/ -v --cov=app --cov-report=xml
+    
+    - name: Upload coverage
+      uses: codecov/codecov-action@v3
+      with:
+        files: ./services/users/coverage.xml
+        flags: users-service
+
+  test-products-service:
+    name: Test Products Service
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      working-directory: ./services/products
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-test.txt
+    
+    - name: Run unit tests
+      working-directory: ./services/products
+      run: |
+        pytest tests/unit/ -v --cov=app --cov-report=xml
+
+  test-cart-service:
+    name: Test Cart Service
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '20'
+    
+    - name: Install dependencies
+      working-directory: ./services/cart
+      run: npm ci
+    
+    - name: Run unit tests
+      working-directory: ./services/cart
+      run: npm test -- --coverage
+    
+    - name: Upload coverage
+      uses: codecov/codecov-action@v3
+      with:
+        files: ./services/cart/coverage/lcov.info
+        flags: cart-service
+
+  test-orders-service:
+    name: Test Orders Service
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '20'
+    
+    - name: Install dependencies
+      working-directory: ./services/orders
+      run: npm ci
+    
+    - name: Run unit tests
+      working-directory: ./services/orders
+      run: npm test -- --coverage
+
+  build-and-push:
+    name: Build Docker Images
+    runs-on: ubuntu-latest
+    needs: [test-users-service, test-products-service, test-cart-service, test-orders-service]
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+    
+    - name: Build Users Service
+      run: |
+        docker build -t ecommerce/users-service:${{ github.sha }} \
+          -f infra/dockerfiles/Dockerfile.users .
+    
+    - name: Build Products Service
+      run: |
+        docker build -t ecommerce/products-service:${{ github.sha }} \
+          -f infra/dockerfiles/Dockerfile.products .
+    
+    - name: Build Cart Service
+      run: |
+        docker build -t ecommerce/cart-service:${{ github.sha }} \
+          -f infra/dockerfiles/Dockerfile.cart .
+    
+    - name: Build Orders Service
+      run: |
+        docker build -t ecommerce/orders-service:${{ github.sha }} \
+          -f infra/dockerfiles/Dockerfile.orders .
+
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    
+    services:
+      postgres:
+        image: postgres:17.5
+        env:
+          POSTGRES_USER: admin
+          POSTGRES_PASSWORD: PassW0rd
+          POSTGRES_DB: ecommerce_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      mongo:
+        image: mongo:8.0
+        ports:
+          - 27017:27017
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Start services with docker-compose
+      run: |
+        docker-compose up -d
+        sleep 30
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install test dependencies
+      run: |
+        pip install pytest requests
+    
+    - name: Run integration tests
+      run: |
+        pytest tests/integration/ -v
+    
+    - name: Stop services
+      run: docker-compose down

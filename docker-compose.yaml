@@ -33,10 +33,13 @@ services:
       timeout: 5s
       start_period: 10s
 
-  ecom_users:
+  users-service:
+
     build: 
       context: .
       dockerfile: infra/dockerfiles/Dockerfile.users
+    image: ecommerce/users-service:latest
+    container_name: users-service
     environment:
       - DATABASE_URL=${DATABASE_URL:-postgresql+asyncpg://admin:PassW0rd@postgres:5432/ecommerce_users}
       - DB_HOST=postgres
@@ -56,10 +59,12 @@ services:
       timeout: 5s
       start_period: 30s
   
-  ecom_products:
+  products-service:
     build: 
       context: .
       dockerfile: infra/dockerfiles/Dockerfile.products
+    container_name: products-service
+    image: ecommerce/products-service:latest
     environment:
       - DATABASE_URL=${DATABASE_URL:-postgresql+asyncpg://admin:PassW0rd@postgres:5432/ecommerce_products}
       - DB_HOST=postgres
@@ -79,22 +84,24 @@ services:
       timeout: 5s
       start_period: 30s
 
-  ecom_cart:
+  cart-service:
     build: 
       context: .
       dockerfile: infra/dockerfiles/Dockerfile.cart
+    container_name: cart-service
+    image: ecommerce/cart-service:latest
     env_file:
       - ./services/cart/.env.prod
     environment:
       - MONGO_URI=${MONGO_DB_URI:-mongodb://mongo:27017/ecommerce_cart}
-      - USERS_SERVICE_URL=http://ecom_users:8001
-      - PRODUCTS_SERVICE_URL=http://ecom_products:8002
+      - USERS_SERVICE_URL=http://users-service:8001
+      - PRODUCTS_SERVICE_URL=http://products-service:8002
     depends_on:
       mongo:
         condition: service_healthy
-      ecom_users:
+      users-service:
         condition: service_healthy
-      ecom_products:
+      products-service:
         condition: service_healthy
     ports:
       - "8003:8003"
@@ -108,25 +115,27 @@ services:
       timeout: 5s
       start_period: 40s
 
-  ecom_orders:
+  orders-service:
     build: 
       context: .
       dockerfile: infra/dockerfiles/Dockerfile.orders
+    container_name: orders-service
+    image: ecommerce/orders-service:latest
     env_file:
       - ./services/orders/.env.prod
     environment:
       - MONGO_URI=${MONGO_DB_URI:-mongodb://mongo:27017/ecommerce_orders}
-      - USERS_SERVICE_URL=http://ecom_users:8001
-      - PRODUCTS_SERVICE_URL=http://ecom_products:8002
-      - CART_SERVICE_URL=http://ecom_cart:8003
+      - USERS_SERVICE_URL=http://users-service:8001
+      - PRODUCTS_SERVICE_URL=http://products-service:8002
+      - CART_SERVICE_URL=http://cart-service:8003
     depends_on:
       mongo:
         condition: service_healthy
-      ecom_users:
+      users-service:
         condition: service_healthy
-      ecom_products:
+      products-service:
         condition: service_healthy
-      ecom_cart:
+      cart-service:
         condition: service_healthy
     ports:
       - "8004:8004"

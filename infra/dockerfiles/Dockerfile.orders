@@ -34,6 +34,7 @@ COPY services/orders/ ./
 
 # Install curl for healthcheck (still needed for runtime healthcheck)
 RUN apk add --no-cache curl
+RUN apk add --no-cache jq
 
 # Switch to non-root user
 USER app

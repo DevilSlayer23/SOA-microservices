@@ -26,6 +26,7 @@ FROM python:3.11-slim AS production
 RUN apt-get update && apt-get install -y --no-install-recommends \
         libpq5 \
         curl \
+        jq \
         && rm -rf /var/lib/apt/lists/*
 
 # Create non-root user and set permissions
@@ -50,4 +51,5 @@ USER appuser
 # -----------------------------------------
 EXPOSE 8001
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8001"]
+# Run the app with Gunicorn and Uvicorn workers
+CMD ["gunicorn", "-k", "uvicorn.workers.UvicornWorker", "app.main:app", "-b", "0.0.0.0:8001", "--workers", "4"]

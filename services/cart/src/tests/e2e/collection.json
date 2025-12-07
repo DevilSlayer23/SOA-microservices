@@ -1,0 +1,10 @@
+{
+  "info": { "name": "Ecommerce API", "_postman_id": "123" },
+  "item": [
+    {
+      "name": "Health",
+      "request": { "method": "GET", "url": "{{BASE_URL}}/health" },
+      "response": []
+    }
+  ]
+}

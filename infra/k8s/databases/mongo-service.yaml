@@ -1,14 +1,14 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: mongo-ecommerce
+  name: mongo-service
   namespace: ecommerce
   labels:
-    app: mongo
+    app: mongo-service
 spec:
   type: ClusterIP
   selector:
-    app: mongo
+    app: mongo-service
   ports:
   - port: 27017
     targetPort: 27017

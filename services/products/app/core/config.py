@@ -1,36 +1,49 @@
-# Generate a configuration object to be used across the application, including settings like environment type and application metadata.
-import secrets
-from typing import Optional
+import os
+from pathlib import Path
+from pydantic import ConfigDict
 from pydantic_settings import BaseSettings
 from decouple import config
 
-class Configuration(BaseSettings):
+# Base directory
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+
+# Determine which env file to load based on ENV variable
+# Default to local if ENV is not set
+env_file = BASE_DIR / ".env.local"
+env_type = os.environ.get("ENV", "local").lower()
+if env_type == "prod":
+    env_file = BASE_DIR / ".env.prod"
+
+print(f"Loading environment: {env_type} from {env_file}")
+
+class Settings(BaseSettings):
+    # Environment info
+    ENV: str = env_type
     IS_PRODUCTION: bool = False
-    PROJECT_NAME: str = "FastAPI Microservices"
+
+    # App metadata
+    PROJECT_NAME: str = "FastAPI - User Microservice"
     PROJECT_VERSION: str = "1.0.0"
     PORT: int = 8000
 
-configuration = Configuration()
+    # Database settings
+    DB_URL:str= os.environ.get("DATABASE_URL", "postgresql+asyncpg://admin:PassW0rd@localhost:5432/ecommerce_products")
 
-class Settings(BaseSettings):
-    POSTGRES_USER: str = config("POSTGRES_USER", default="postgres")
-    POSTGRES_PASSWORD: str = config("POSTGRES_PASSWORD", default="password")
-    POSTGRES_DB: str = config("POSTGRES_DB", default="fastapi_db")
-    POSTGRES_HOST: str = config("POSTGRES_HOST", default="localhost")
-    POSTGRES_PORT: int = config("POSTGRES_PORT", default=5432)
-    DB_URL: Optional[str] = config("DB_URL", default=f"postgresql+asyncpg://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}")
-    PROJECT_NAME: str = config("PROJECT_NAME", default="FastAPI Microservices")
-    PROJECT_VERSION: str = config("PROJECT_VERSION", default="1.0.0")
-    
-    REDIS_HOST: str = config("REDIS_HOST", default="localhost")
-    REDIS_PORT: int = config("REDIS_PORT", default=6379)
-    REDIS_DB: int = config("REDIS_DB", default=0)
-    REDIS_URL: Optional[str] = config("REDIS_URL", default=f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}")
+    POSTGRES_USER: str = "admin"
+    POSTGRES_PASSWORD: str = "PassW0rd"
+    POSTGRES_DB: str = "ecommerce_products"
+    POSTGRES_HOST: str = "localhost"
+    POSTGRES_PORT: int = 5432
 
-    # JWT Settings
-    JWT_SECRET: str = config("JWT_SECRET", default=secrets.token_urlsafe(32))
-    JWT_ALGORITHM: str = config("JWT_ALGORITHM", default="HS256")
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = config("ACCESS_TOKEN_EXPIRE_MINUTES", default=60)
+    JWT_SECRET: str = "secret"
+    JWT_ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
+    model_config = ConfigDict(extra="forbid")
 
-
+# Load settings
 settings = Settings()
+settings.IS_PRODUCTION = settings.ENV.lower() == "prod"
+
+# Example usage
+print(f"App running in {'production' if settings.IS_PRODUCTION else 'local'} mode")
+print(f"Database URL: {settings.DB_URL}")

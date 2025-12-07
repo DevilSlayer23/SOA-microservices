@@ -4,16 +4,16 @@ metadata:
   name: mongo
   namespace: ecommerce
   labels:
-    app: mongo
+    app: mongo-service
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: mongo
+      app: mongo-service
   template:
     metadata:
       labels:
-        app: mongo
+        app: mongo-service
     spec:
       containers:
       - name: mongo
@@ -28,19 +28,13 @@ spec:
             memory: "512Mi"
             cpu: "500m"
         livenessProbe:
-          exec:
-            command:
-            - mongosh
-            - --eval
-            - "db.runCommand({ ping: 1 })"
+          tcpSocket:
+            port: 27017
           initialDelaySeconds: 30
           periodSeconds: 10
         readinessProbe:
-          exec:
-            command:
-            - mongosh
-            - --eval
-            - "db.runCommand({ ping: 1 })"
+          tcpSocket:
+            port: 27017
           initialDelaySeconds: 5
           periodSeconds: 5
         volumeMounts:
@@ -58,7 +52,7 @@ metadata:
   namespace: ecommerce
 spec:
   accessModes:
-  - ReadWriteOnce
+    - ReadWriteOnce
   resources:
     requests:
       storage: 1Gi

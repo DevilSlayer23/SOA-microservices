@@ -10,10 +10,10 @@ console.log("Loaded env file:", env === 'production' ? ".env.prod" : ".env.local
 
 import express from 'express';
 import cors from 'cors';
-import {db} from "./src/db/db"
+import { db } from "./db/db"
 
 
-const app = express(); 
+const app = express();
 const PORT = process.env.APP_PORT || 8004;
 
 // Middleware
@@ -43,22 +43,22 @@ const startServer = async () => {
 startServer();
 
 // Import and use cart and orders routes
-app.use('/api/orders', require('./src/orders/route').default);
+app.use('/api/orders', require('./orders/route').default);
 
 // Health check endpoint
 
 app.get('/health', async (req, res) => {
-    res.json({
-      status: 'Running',
-      timestamp: new Date().toISOString()
-    });
-    
+  res.json({
+    status: 'Running',
+    timestamp: new Date().toISOString()
   });
 
- 
-  // Root endpoint
+});
+
+
+// Root endpoint
 app.get('/', (req, res) => {
-  res.json({ 
+  res.json({
     message: 'Cart Service API',
     version: '1.0.0',
     endpoints: {
@@ -78,4 +78,3 @@ app.use((req, res) => {
 
 
 export default app;
-  

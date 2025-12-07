@@ -1,60 +1,65 @@
 import platform
+import logging
 from datetime import datetime, timezone
 from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from app.core.config import configuration
-from app.db.session import async_engine, Base
-import logging
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
+from app.core.config import settings  # use the cleaned-up Settings model
+from app.db.session import async_engine, Base
 
 logger = logging.getLogger(__name__)
 
+def format_time(dt: datetime) -> str:
+    return dt.astimezone(timezone.utc).strftime("%Y-%m-%d %H:%M:%S %Z")
 
-
-# ---------------- lifespan ----------------
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    scheduler = AsyncIOScheduler()
     try:
-        app_name = app.title
-        environment = "production" if configuration.IS_PRODUCTION else "sandbox"
-        startup_time = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S %Z")
-        python_version = platform.python_version()
-        app.state.config = configuration
-        # If you want auto-generated tables from model
+        # Store config
+        app.state.settings = settings
+        environment = "production" if settings.IS_PRODUCTION else "sandbox"
+
+        # Create tables
         async with async_engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
-        # Start Scheduler (example job)
-        scheduler = AsyncIOScheduler()
+
+        # Scheduler job example
         async def housekeeping():
-            logger.info("housekeeping tick")
+            logger.info("Housekeeping tick")
+
         scheduler.add_job(housekeeping, "interval", minutes=5)
         scheduler.start()
         app.state.scheduler = scheduler
-        # Startup log
+
+        # Startup logging
         logger.info(
             "\n=========================================\n"
             "          Application Startup            \n"
             "=========================================\n"
-            f"App Name        : {app_name}\n"
+            f"App Name        : {app.title}\n"
             f"Environment     : {environment}\n"
-            f"Startup Time    : {startup_time}\n"
-            f"Python Version  : {python_version}\n"
+            f"Startup Time    : {format_time(datetime.now())}\n"
+            f"Python Version  : {platform.python_version()}\n"
             "=========================================\n"
         )
-        yield
+
+        yield  # hand control back to FastAPI
+
+    except Exception as e:
+        logger.exception("Error during app lifespan")
+        raise e
+
+    finally:
         # Shutdown
-        scheduler.shutdown(wait=False)
-        shutdown_time = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S %Z")
+        if scheduler.running:
+            scheduler.shutdown(wait=False)
         logger.info(
             "\n=========================================\n"
             "          Application Shutdown           \n"
             "=========================================\n"
-            f"Shutdown Time   : {shutdown_time}\n"
+            f"Shutdown Time   : {format_time(datetime.now())}\n"
             "=========================================\n"
         )
-    except Exception as e:
-        logger.error(f"Lifespan error: {e}")
-        raise e
-# ---------------- lifespan ----------------

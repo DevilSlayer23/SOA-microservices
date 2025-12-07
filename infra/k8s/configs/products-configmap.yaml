@@ -5,7 +5,7 @@ metadata:
   name: products-config
   namespace: ecommerce
 data:
-  DATABASE_URL: "postgresql+asyncpg://admin:PassW0rd@postgres:5432/ecommerce_products"
-  DB_HOST: "postgres"
+  DATABASE_URL: "postgresql+asyncpg://admin:PassW0rd@postgres-service:5432/ecommerce_products"
+  DB_HOST: "postgres-service"
   PROJECT_NAME: "Products Service"
   PROJECT_VERSION: "1.0.0"

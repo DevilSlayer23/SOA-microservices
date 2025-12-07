@@ -1,55 +1,67 @@
 #!/bin/bash
 
+set -e
+
 echo "🚀 Deploying E-Commerce Microservices to Kubernetes..."
+
+# Verify we're in the right directory
+if [ ! -f "../k8s/namespace.yaml" ]; then
+    echo "❌ Error: Cannot find k8s files. Make sure you're running from infra/scripts/"
+    exit 1
+fi
 
 # Create namespace
 echo "📦 Creating namespace..."
-kubectl apply -f k8s/namespace.yaml
+kubectl apply -f ../k8s/namespace.yaml  
 
 # Apply secrets
 echo "🔐 Creating secrets..."
-kubectl apply -f k8s/secrets/
+kubectl apply -f ../k8s/secrets/ -n ecommerce
 
 # Apply configmaps
 echo "⚙️  Creating configmaps..."
-kubectl apply -f k8s/configs/
+kubectl apply -f ../k8s/configs/ -n ecommerce
 
 # Deploy databases
 echo "💾 Deploying databases..."
-kubectl apply -f k8s/databases/
+kubectl apply -f ../k8s/databases/ -n ecommerce
 
-# Wait for databases to be ready
-echo "⏳ Waiting for databases..."
-kubectl wait --for=condition=ready pod -l app=postgres -n ecommerce --timeout=120s
-kubectl wait --for=condition=ready pod -l app=mongo -n ecommerce --timeout=120s
+# Wait for databases
+echo "⏳ Waiting for databases to be ready..."
+echo "  - Waiting for PostgreSQL..."
+kubectl wait --for=condition=ready pod -l app=postgres-service -n ecommerce --timeout=120s || true
+echo "  - Waiting for MongoDB..."
+kubectl wait --for=condition=ready pod -l app=mongo-service -n ecommerce --timeout=120s || true
 
 # Deploy services
 echo "🌐 Deploying microservices..."
-kubectl apply -f k8s/services/
+kubectl apply -f ../k8s/services/ -n ecommerce
 
-# Wait for services to be ready
-echo "⏳ Waiting for services..."
-kubectl wait --for=condition=ready pod -l app=users-ecommerce -n ecommerce --timeout=120s
-kubectl wait --for=condition=ready pod -l app=products-ecommerce -n ecommerce --timeout=120s
-kubectl wait --for=condition=ready pod -l app=cart-ecommerce -n ecommerce --timeout=120s
-kubectl wait --for=condition=ready pod -l app=orders-ecommerce -n ecommerce --timeout=120s
+# Wait for services
+echo "⏳ Waiting for services to be ready (this may take a minute)..."
+
+kubectl wait --for=condition=ready pod -l app=users-service -n ecommerce --timeout=10s || echo "⚠️  Users service not ready yet"
+kubectl wait --for=condition=ready pod -l app=products-service -n ecommerce --timeout=10s || echo "⚠️  Products service not ready yet"
+kubectl wait --for=condition=ready pod -l app=cart-service -n ecommerce --timeout=10s || echo "⚠️  Cart service not ready yet"
+kubectl wait --for=condition=ready pod -l app=orders-service -n ecommerce --timeout=10s || echo "⚠️  Orders service not ready yet"
 
 # Apply HPA
-echo "📊 Configuring autoscaling..."
-kubectl apply -f k8s/hpa/
+echo "📊 Configuring autoscaling (HPA)..."
+kubectl apply -f ../k8s/hpa/ -n ecommerce
 
-# Apply network policies (optional)
-# echo "🔒 Applying network policies..."
-# kubectl apply -f k8s/network-policies/
+# Deploy monitoring if exists
+# .
+cd  ../../monitoring
+kubectl apply -f ./grafana/grafana.yaml
+kubectl apply -f ./prometheus/prometheus.yaml
+kubectl apply -f ./loki/loki.yaml
+
+
 
 echo ""
 echo "✅ Deployment complete!"
 echo ""
-echo "📍 Access services:"
-echo "  Users:    http://$(minikube ip):30001"
-echo "  Products: http://$(minikube ip):30002"
-echo "  Cart:     http://$(minikube ip):30003"
-echo "  Orders:   http://$(minikube ip):30004"
+echo "📊 Current status:"
+kubectl get pods -n ecommerce
 echo ""
-echo "📊 Check status:"
-echo "  kubectl get all -n ecommerce"
+kubectl get svc -n ecommerce

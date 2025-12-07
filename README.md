@@ -176,10 +176,10 @@ cd infra/scripts
 ./deploy.sh
 
 # 4. Get service URLs
-minikube service users-service -n ecommerce --url
-minikube service products-service -n ecommerce --url
-minikube service cart-service -n ecommerce --url
-minikube service orders-service -n ecommerce --url
+minikube service users -n ecommerce --url
+minikube service products -n ecommerce --url
+minikube service cart -n ecommerce --url
+minikube service orders -n ecommerce --url
 ```
 
 ## 📁 Project Structure
@@ -328,13 +328,13 @@ kubectl get nodes
 eval $(minikube docker-env)
 
 # 2. Build all images
-docker build -t ecommerce/users-service:latest \
+docker build -t ecommerce/users:latest \
   -f infra/dockerfiles/Dockerfile.users .
-docker build -t ecommerce/products-service:latest \
+docker build -t ecommerce/products:latest \
   -f infra/dockerfiles/Dockerfile.products .
-docker build -t ecommerce/cart-service:latest \
+docker build -t ecommerce/cart:latest \
   -f infra/dockerfiles/Dockerfile.cart .
-docker build -t ecommerce/orders-service:latest \
+docker build -t ecommerce/orders:latest \
   -f infra/dockerfiles/Dockerfile.orders .
 
 # 3. Deploy to Kubernetes
@@ -346,10 +346,10 @@ chmod +x deploy.sh
 kubectl get all -n ecommerce
 
 # 5. Get service URLs
-minikube service users-service -n ecommerce --url
-minikube service products-service -n ecommerce --url
-minikube service cart-service -n ecommerce --url
-minikube service orders-service -n ecommerce --url
+minikube service users -n ecommerce --url
+minikube service products -n ecommerce --url
+minikube service cart -n ecommerce --url
+minikube service orders -n ecommerce --url
 ```
 
 ### Monitor Deployment
@@ -358,8 +358,8 @@ minikube service orders-service -n ecommerce --url
 kubectl get pods -n ecommerce -w
 
 # Check pod logs
-kubectl logs -n ecommerce -l app=users-service
-kubectl logs -n ecommerce -l app=products-service
+kubectl logs -n ecommerce -l app=users
+kubectl logs -n ecommerce -l app=products
 
 # Check HPA status
 kubectl get hpa -n ecommerce
@@ -380,7 +380,7 @@ MINIKUBE_IP=$(minikube ip)
 # Orders:   http://$MINIKUBE_IP:30004
 
 # Or use minikube service command
-minikube service users-service -n ecommerce
+minikube service users -n ecommerce
 ```
 
 ### Clean Up
@@ -626,7 +626,7 @@ eval $(minikube docker-env)
 docker images | grep ecommerce
 
 # Rebuild if needed
-docker build -t ecommerce/users-service:latest \
+docker build -t ecommerce/users:latest \
   -f infra/dockerfiles/Dockerfile.users .
 ```
 
@@ -636,7 +636,7 @@ docker build -t ecommerce/users-service:latest \
 kubectl get svc -n ecommerce
 
 # Get service URL
-minikube service users-service -n ecommerce --url
+minikube service users -n ecommerce --url
 
 # Check Minikube IP
 minikube ip
@@ -699,7 +699,8 @@ minikube start --cpus=4 --memory=8192
 
 ## 👥 Team Members
 
-- [Add your team members here]
+- Sagar Thapa
+- Sachit Jaswal
 
 ## 📝 License
 

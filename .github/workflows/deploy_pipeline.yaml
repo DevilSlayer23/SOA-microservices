@@ -1,0 +1,54 @@
+name: Deploy to Kubernetes
+
+on:
+  workflow_run:
+    workflows: ["CI Pipeline"]
+    types:
+      - completed
+    branches: [main]
+
+jobs:
+  deploy-to-k8s:
+    name: Deploy to Kubernetes
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Start Minikube
+      uses: medyagh/setup-minikube@latest
+      with:
+        cpus: 4
+        memory: 8192
+    
+    - name: Build images
+      run: |
+        eval $(minikube docker-env)
+        docker build -t ecommerce/users-service:latest -f infra/dockerfiles/Dockerfile.users .
+        docker build -t ecommerce/products-service:latest -f infra/dockerfiles/Dockerfile.products .
+        docker build -t ecommerce/cart-service:latest -f infra/dockerfiles/Dockerfile.cart .
+        docker build -t ecommerce/orders-service:latest -f infra/dockerfiles/Dockerfile.orders .
+    
+    - name: Deploy to Kubernetes
+      run: |
+        cd infra/scripts
+        chmod +x deploy.sh
+        ./deploy.sh
+    
+    - name: Wait for deployment
+      run: |
+        kubectl wait --for=condition=ready pod -l app=users-service -n ecommerce --timeout=120s
+        kubectl wait --for=condition=ready pod -l app=products-service -n ecommerce --timeout=120s
+        kubectl wait --for=condition=ready pod -l app=cart-service -n ecommerce --timeout=120s
+        kubectl wait --for=condition=ready pod -l app=orders-service -n ecommerce --timeout=120s
+    
+    - name: Run E2E tests
+      run: |
+        pip install pytest requests
+        export BASE_URL=http://$(minikube ip)
+        pytest tests/e2e/ -v
+    
+    - name: Get deployment status
+      run: |
+        kubectl get all -n ecommerce

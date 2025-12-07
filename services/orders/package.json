@@ -2,12 +2,15 @@
   "name": "orders",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/server.js",
   "scripts": {
-    "start": "nodemon --exec ts-node server.ts",
-    "dev": "NODE_ENV=development nodemon --exec ts-node server.ts",
-    "production": "NODE_ENV=production nodemon --exec ts-node server.ts",
-    "build": "tsc"
+    "build": "tsc --project tsconfig.prod.json",
+    "start": "node dist/server.js",
+    "dev": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/server.ts",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "e2e": "newman run tests/e2e/collection.json --env-var BASE_URL=http://localhost:8004"
   },
   "keywords": [],
   "author": "",

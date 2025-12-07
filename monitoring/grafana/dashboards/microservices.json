@@ -1,0 +1,19 @@
+{
+  "title": "Microservices Overview",
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "Requests",
+      "targets": [
+        { "expr": "rate(http_requests_total[1m])" }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Error Rate",
+      "targets": [
+        { "expr": "rate(http_requests_total{status=~\"5..\"}[1m])" }
+      ]
+    }
+  ]
+}

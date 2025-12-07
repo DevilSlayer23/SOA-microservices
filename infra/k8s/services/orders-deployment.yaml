@@ -1,23 +1,23 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: orders
+  name: orders-service
   namespace: ecommerce
   labels:
-    app: orders
+    app: orders-service
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: orders
+      app: orders-service
   template:
     metadata:
       labels:
-        app: orders
+        app: orders-service
     spec:
       containers:
-      - name: orders
-        image: ecommerce/orders:latest
+      - name: orders-service
+        image: ecommerce/orders-service:latest
         imagePullPolicy: Never
         ports:
         - containerPort: 8004

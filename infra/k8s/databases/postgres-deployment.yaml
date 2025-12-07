@@ -4,16 +4,16 @@ metadata:
   name: postgres
   namespace: ecommerce
   labels:
-    app: postgres
+    app: postgres-service
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: postgres
+      app: postgres-service
   template:
     metadata:
       labels:
-        app: postgres
+        app: postgres-service
     spec:
       containers:
       - name: postgres
@@ -33,17 +33,17 @@ spec:
         livenessProbe:
           exec:
             command:
-            - pg_isready
-            - -U
-            - admin
+              - pg_isready
+              - -U
+              - admin
           initialDelaySeconds: 30
           periodSeconds: 10
         readinessProbe:
           exec:
             command:
-            - pg_isready
-            - -U
-            - admin
+              - pg_isready
+              - -U
+              - admin
           initialDelaySeconds: 5
           periodSeconds: 5
         volumeMounts:
@@ -66,7 +66,7 @@ metadata:
   namespace: ecommerce
 spec:
   accessModes:
-  - ReadWriteOnce
+    - ReadWriteOnce
   resources:
     requests:
       storage: 1Gi

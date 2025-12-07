@@ -1,19 +1,21 @@
 {
-  "name": "orders",
+  "name": "cart",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Cart service",
+  "main": "dist/server.js",
   "scripts": {
-    "start": "nodemon --exec ts-node server.ts",
-    "dev": "nodemon --exec ts-node server.ts",
-    "production": "nodemon --exec ts-node server.ts",
-    "build": "tsc"
+    "build": "tsc --project tsconfig.prod.json",
+    "start": "node dist/server.js",
+    "dev": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/server.ts",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "e2e": "newman run tests/e2e/collection.json --env-var BASE_URL=http://localhost:8004"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
-  "dependencies": {
+   "dependencies": {
     "ajv": "^8.17.1",
     "axios": "^1.13.2",
     "cors": "^2.8.5",
@@ -23,9 +25,7 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.20.0",
     "pg": "^8.16.3",
-    "pine": "^1.1.1",
     "pino": "^10.1.0",
-    "postgres": "^3.4.7",
     "redis": "^5.10.0",
     "sequelize": "^6.37.7",
     "sqlite3": "^5.1.7"
@@ -36,7 +36,9 @@
     "@types/helmet": "^0.0.48",
     "@types/jest": "^30.0.0",
     "@types/node": "^24.10.1",
+    "@types/supertest": "^6.0.3",
     "jest": "^30.2.0",
+    "mongodb-memory-server": "^10.4.0",
     "nodemon": "^3.1.11",
     "supertest": "^7.1.4",
     "ts-jest": "^29.4.6",
