@@ -10,6 +10,6 @@
     "forceConsistentCasingInFileNames": true,
     "types": ["jest", "node"]
     },
-    "include": ["src/**/*.ts",  "tests/**/*.ts"],
+    "include": ["src/**/*.ts",  "tests/**/*.ts", "src/services/ClearDB.js"],
     "exclude": ["node_modules"]
 }

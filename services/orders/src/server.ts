@@ -14,7 +14,7 @@ import { db } from "./db/db"
 
 
 const app = express();
-const PORT = process.env.APP_PORT || 8004;
+const PORT = process.env.APP_PORT || 8003;
 
 // Middleware
 app.use(cors());
@@ -31,7 +31,7 @@ const startServer = async () => {
 
     // Start Express server
     app.listen(Number(PORT), '0.0.0.0', () => {
-      console.log(`🚀 Cart Service running on port ${PORT}`);
+      console.log(`🚀 Order Service running on port ${PORT}`);
       console.log(`📍 Health check: http://localhost:${PORT}/health`);
     });
   } catch (error) {
@@ -49,7 +49,8 @@ app.use('/api/orders', require('./orders/route').default);
 
 app.get('/health', async (req, res) => {
   res.json({
-    status: 'Running',
+    status: 'OK',
+    app: 'Orders',
     timestamp: new Date().toISOString()
   });
 

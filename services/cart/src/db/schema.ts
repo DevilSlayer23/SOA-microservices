@@ -10,10 +10,6 @@ const cartItemSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  name: {
-    type: String,
-    required: true
-  },
   price: {
     type: Number,
     required: true,
@@ -26,6 +22,7 @@ const cartItemSchema = new mongoose.Schema({
   }
 }, { _id: false });
 
+
 const cartSchema = new mongoose.Schema({
   user_id: {
     type: String,
@@ -34,39 +31,28 @@ const cartSchema = new mongoose.Schema({
     index: true
   },
   items: [cartItemSchema],
-  total: {
-    type: Number,
-    default: 0,
-    min: 0
-  },
-  total_items:{
+  total_items: {
     type: Number,
     default: 0,
   },
-  total_price : {
+  total_price: {
     type: Number,
     default: 0,
   },
   status: {
     type: String,
     enum: ['active', 'inactive', 'pending', "checked_out"], // Allowed statuses
-    required: true
+    required: true,
+    default: 'pending'
   }
 }, {
   timestamps: true,
   collection: 'carts'
 });
 
-// Calculate total before saving
-cartSchema.pre('save', function(next) {
-  this.total = this.items.reduce((sum, item) => {
-    return sum + (item.price * item.quantity);
-  }, 0);
-  next();
-});
 
 // Virtual for item count
-cartSchema.virtual('itemCount').get(function() {
+cartSchema.virtual('itemCount').get(function () {
   return this.items.length;
 });
 

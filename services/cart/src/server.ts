@@ -9,26 +9,39 @@ if (env === 'production') {
 console.log("Loaded env file:", env === 'production' ? ".env.prod" : ".env.local");
 
 import express from 'express';
-const mongoose = require('mongoose')
+import cors from 'cors';
 import { db } from "./db/db"
 import logger from './utils/logger';
 
+
 const app = express();
-const PORT = process.env.APP_PORT || 8003;
+const PORT = process.env.APP_PORT || 8004;
 
-db.on('error', (err: unknown) => {
-  const message = err instanceof Error ? err.message : String(err);
-  // Use a single string (or structured object if your logger's types accept it)
-  logger.error(`Failed to start server: ${message}`);
-});
-
-db.once("open", () => {
-  logger.info("Connected to MongoDB database");
-});
-
-
-// Middleware to parse JSON bodies
+// Middleware
+app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+
+
+// Start server
+const startServer = async () => {
+  try {
+    // Connect to MongoDB
+    await db();
+
+    // Start Express server
+    app.listen(Number(PORT), '0.0.0.0', () => {
+      console.log(`🚀 Cart Service running on port ${PORT}`);
+      console.log(`📍 Health check: http://localhost:${PORT}/health`);
+    });
+  } catch (error) {
+    console.error('❌ Failed to start server:', error);
+    process.exit(1);
+  }
+};
+
+startServer();
 
 // Import and use cart and orders routes
 app.use('/api/cart', require('./cart/route').default);
@@ -38,7 +51,8 @@ app.use('/api/cart', require('./cart/route').default);
 
 app.get('/health', async (req, res) => {
   res.json({
-    status: 'Running',
+    status: 'OK',
+    app: 'Cart',
     timestamp: new Date().toISOString()
   });
 

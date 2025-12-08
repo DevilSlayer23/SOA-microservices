@@ -7,16 +7,16 @@ import { config } from "dotenv";
 const router = Router();
 
 const api = createApiClient(
-    { 
-        baseURL:'http://localhost:8003/',
+    {
+        baseURL: 'http://localhost:8003/',
         retries: 2
 
-     });
+    });
 
-     /**
- * GET /cart/:
- * Fetch user cart
- */
+/**
+* GET /cart/:
+* Fetch user cart
+*/
 
 /**
  * GET /cart/:user_id
@@ -25,7 +25,7 @@ const api = createApiClient(
 router.get("/:user_id", async (req, res): Promise<void> => {
     try {
         const { user_id } = req.params;
-        let cart = await Cart.findOne({ user_id, status: "open" });
+        let cart = await Cart.findOne({ user_id });
 
         if (!cart) {
             cart = await Cart.create({ user_id, items: [] });
@@ -47,7 +47,9 @@ router.post("/:user_id/add", async (req, res): Promise<void> => {
         const { user_id } = req.params;
         const { product_id, quantity, price } = req.body;
 
-        let cart = await Cart.findOne({ user_id, status: "open" });
+        console.log(req.body);
+
+        let cart = await Cart.findOne({ user_id });
 
         if (!cart) {
             cart = await Cart.create({ user_id, items: [] });
@@ -61,8 +63,8 @@ router.post("/:user_id/add", async (req, res): Promise<void> => {
             cart.items.push({ product_id, quantity, price });
         }
 
-        cart.total_items = cart.items.reduce((s : number, item) => s + item.quantity, 0);
-        cart.total_price = cart.items.reduce((s : number, item) => s + item.quantity * item.price, 0);
+        cart.total_items = cart.items.reduce((s: number, item) => s + item.quantity, 0);
+        cart.total_price = cart.items.reduce((s: number, item) => s + item.quantity * item.price, 0);
 
         await cart.save();
 
@@ -110,7 +112,7 @@ router.delete("/:user_id/clear", async (req, res): Promise<void> => {
     try {
         const { user_id } = req.params;
 
-        const cart = await Cart.findOne({ user_id, status: "active" });
+        const cart = await Cart.findOne({ user_id });
 
         if (!cart) {
             res.json({ message: "Cart already empty" });
